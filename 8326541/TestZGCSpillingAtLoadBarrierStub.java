@@ -30,16 +30,14 @@ class Outer {
 
 public class TestZGCSpillingAtLoadBarrierStub {
 
-    float test_float(Outer[] array, int index) {
-        float float_const = (float) index;
-        Inner inner = array[index].field;
-        return float_const + ((InnerFloat)inner).data;
+    float test_float(Outer outer, float f) {
+        Inner inner = outer.field;
+        return f + ((InnerFloat)inner).data;
     }
 
-    double test_double(Outer[] array, int index) {
-        double double_const = (double) index;
-        Inner inner = array[index].field;
-        return double_const + ((InnerDouble)inner).data;
+    double test_double(Outer outer, double d) {
+        Inner inner = outer.field;
+        return d + ((InnerDouble)inner).data;
     }
 
     void test_float_vector_128(float[] b, Outer[] array) {
@@ -48,7 +46,7 @@ public class TestZGCSpillingAtLoadBarrierStub {
         FloatVector av = FloatVector.zero(float_species);
         for (int i = 0; i < b.length; i += float_species.length()) {
             FloatVector bv = FloatVector.fromArray(float_species, b, i);
-            Inner inner = array[random.nextInt(NUM)].field;
+            Inner inner = array[RANDOM.nextInt(NUM)].field;
             float value = ((InnerFloat)inner).data;
             av = av.add(bv).add(value);
         }
@@ -60,7 +58,7 @@ public class TestZGCSpillingAtLoadBarrierStub {
         FloatVector av = FloatVector.zero(float_species);
         for (int i = 0; i < b.length; i += float_species.length()) {
             FloatVector bv = FloatVector.fromArray(float_species, b, i);
-            Inner inner = array[random.nextInt(NUM)].field;
+            Inner inner = array[RANDOM.nextInt(NUM)].field;
             float value = ((InnerFloat)inner).data;
             av = av.add(bv).add(value);
         }
@@ -68,8 +66,9 @@ public class TestZGCSpillingAtLoadBarrierStub {
 
     ////////////////////////////////////////////////////////////
 
-    private static final int NUM = 1024;
-    private static final RandomGenerator random = RandomGeneratorFactory.getDefault().create(0);
+    private final static int NUM = 1024;
+    private final static int ITERATIONS = 20_000;
+    private final static RandomGenerator RANDOM = RandomGeneratorFactory.getDefault().create(0);
 
     Outer[] generateOuterArray(Inner[] inners) {
         Outer[] outers = new Outer[NUM];
@@ -82,29 +81,29 @@ public class TestZGCSpillingAtLoadBarrierStub {
     public void test() {
         TestZGCSpillingAtLoadBarrierStub t = new TestZGCSpillingAtLoadBarrierStub();
 
-        ////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////
 
-        InnerFloat[]  inners_1 = new InnerFloat[NUM];
-        InnerDouble[] inners_2 = new InnerDouble[NUM];
         float[] f_array = new float[NUM];
+        InnerFloat[] f_inners = new InnerFloat[NUM];
+        InnerDouble[] d_inners = new InnerDouble[NUM];
 
         for (int i = 0; i < NUM; i++) {
-            inners_1[i] = new InnerFloat(random.nextFloat());
-            inners_2[i] = new InnerDouble(random.nextDouble());
-            f_array[i] = random.nextFloat();
+            f_array[i] = RANDOM.nextFloat();
+            f_inners[i] = new InnerFloat(RANDOM.nextFloat());
+            d_inners[i] = new InnerDouble(RANDOM.nextDouble());
         }
 
-        Outer[] outers_1 = generateOuterArray(inners_1);
-        Outer[] outers_2 = generateOuterArray(inners_2);
+        Outer[] f_outers = generateOuterArray(f_inners);
+        Outer[] d_outers = generateOuterArray(d_inners);
 
-        ////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////
 
-        for (int i = 0; i < 20000; i++) {
-            t.test_float(outers_1, random.nextInt(NUM));
-            t.test_double(outers_2, random.nextInt(NUM));
-            t.test_float_vector_128(f_array, outers_1);
-            t.test_float_vector_PREFERRED(f_array, outers_1);
+        for (int i = 0; i < ITERATIONS; i++) {
+            t.test_float(f_outers[RANDOM.nextInt(NUM)], RANDOM.nextFloat());
+            t.test_double(d_outers[RANDOM.nextInt(NUM)], RANDOM.nextDouble());
+            t.test_float_vector_128(f_array, f_outers);
+            t.test_float_vector_PREFERRED(f_array, f_outers);
         }
-    } 
+    }
 }
 
