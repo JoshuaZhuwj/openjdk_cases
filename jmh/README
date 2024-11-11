@@ -1,0 +1,5 @@
+1. export JAVA_HOME
+export JAVA_HOME=${path_to_jdk}
+
+2. build the project
+mvn clean install

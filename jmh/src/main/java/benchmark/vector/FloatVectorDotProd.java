@@ -1,4 +1,4 @@
-package org.openjdk.bench.jdk.incubator.vector;
+package benchmark.vector;
 
 import java.util.Random;
 import jdk.incubator.vector.*;
@@ -10,17 +10,16 @@ import org.openjdk.jmh.annotations.*;
 @Fork(jvmArgsPrepend = {"--add-modules=jdk.incubator.vector"})
 public class FloatVectorDotProd {
     @Param({"1024"})
-    static int SIZE;
+    int SIZE;
+
+    float[] a;
+    float[] b;
 
     static final VectorSpecies<Float> SPECIES = FloatVector.SPECIES_PREFERRED;
     static final VectorSpecies<Float> SPECIES_256 = FloatVector.SPECIES_256;
 
-    private float[] a;
-
-    private float[] b;
-
     @Setup(Level.Trial)
-    public void BmSetup() {
+    public void setup() {
         Random r = new Random();
         a = new float[SIZE];
         b = new float[SIZE];
